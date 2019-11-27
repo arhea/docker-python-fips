@@ -10,13 +10,19 @@ This example is wrapped in a Docker container running Ubuntu 16.04. To build the
 
 ```bash
 make build # will build all of the images
-make build-27 # will build docker-python-fips:2.7
-make build-37 # will build docker-python-fips:3.7
-make build-38 # will build docker-python-fips:3.8
+make build-27 # will build python-fips:2.7
+make build-37 # will build python-fips:3.7
+make build-38 # will build python-fips:3.8
 ```
 
 Then to run the container:
 
 ```bash
-docker run -it --rm docker-python-fips:3.8 bash
+docker run -it --rm python-fips:3.8 bash
+```
+
+To trigger the builds in CodeBuild:
+
+```bash
+make trigger
 ```
