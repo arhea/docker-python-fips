@@ -6,13 +6,22 @@ CONTAINER_NAME=python-fips
 trigger: trigger-27 trigger-37 trigger-38
 
 trigger-27:
-	aws codebuild start-build --project-name="DockerPythonFips" --environment-variables-override="IMAGE_TAG=2.7,PYTHON_VERSION=2.7.17" --profile $(AWS_PROFILE)
+	aws codebuild start-build \
+		--project-name="DockerPythonFips" \
+		--environment-variables-override="name=IMAGE_TAG,value=2.7,type=PLAINTEXT,name=PYTHON_VERSION,value=2.7.17,type=PLAINTEXT" \
+		--profile $(AWS_PROFILE)
 
 trigger-37:
-	aws codebuild start-build --project-name="DockerPythonFips" --environment-variables-override="IMAGE_TAG=3.7,PYTHON_VERSION=3.7.5" --profile $(AWS_PROFILE)
+	aws codebuild start-build \
+		--project-name="DockerPythonFips" \
+		--environment-variables-override="name=IMAGE_TAG,value=3.7,type=PLAINTEXT,name=PYTHON_VERSION,value=3.7.5,type=PLAINTEXT" \
+		--profile $(AWS_PROFILE)
 
 trigger-38:
-	aws codebuild start-build --project-name="DockerPythonFips" --environment-variables-override="IMAGE_TAG=3.8,PYTHON_VERSION=3.8.0" --profile $(AWS_PROFILE)
+	aws codebuild start-build \
+		--project-name="DockerPythonFips" \
+		--environment-variables-override="name=IMAGE_TAG,value=3.8,type=PLAINTEXT,name=PYTHON_VERSION,value=3.8.0,type=PLAINTEXT" \
+		--profile $(AWS_PROFILE)
 
 build: build-27 build-37 build-38
 
