@@ -3,33 +3,33 @@ FROM ubuntu:16.04 AS openssl
 ENV PATH /usr/local/bin:$PATH
 ENV LANG C.UTF-8
 
-ENV OPENSSL_FIPS_VERSION=2.0.16
-ENV OPENSSL_VERSION=1.0.2t
-ENV PYTHON_VERSION=3.8.0
+ARG OPENSSL_FIPS_VERSION=2.0.16
+ARG OPENSSL_VERSION=1.0.2t
+ARG PYTHON_VERSION=3.8.0
 
 RUN mkdir -p /usr/local/src/ \
   && apt-get update -y \
   && apt-get -y install \
+    curl \
+    make \
+    cmake \
+    bzip2 \
+    g++ \
+    build-essential \
+    libc6 \
     tcl-dev \
     tk-dev \
-    bzip2 \
     libbz2-dev \
-    build-essential \
-    g++ \
-    make \
     zlib1g-dev \
     libffi-dev \
-    libc6 \
     libcups2-dev \
     libkrb5-dev \
     libyaml-dev \
-    devscripts \
-    debhelper \
     libqt4-dev \
-    cmake \
     libsqlite3-dev \
-    curl \
-    libffi-dev
+    libffi-dev \
+    libxml2-dev \
+    libxslt-dev
 
 WORKDIR /usr/local/src/
 
@@ -65,8 +65,8 @@ RUN set -ex \
     && mkdir -p /usr/local/ssl/lib/shared \
     && cp /usr/local/ssl/lib/libcrypto.so.1.0.0 /usr/local/ssl/lib/shared/libcrypto.so.1.0.0 \
     && cp /usr/local/ssl/lib/libssl.so.1.0.0 /usr/local/ssl/lib/shared/libssl.so.1.0.0 \
-    && ln -s /usr/local/ssl/lib/shared/libcrypto.so.1.0.0 /usr/local/ssl/lib/shared/libcrypto.so \
-    && ln -s /usr/local/ssl/lib/shared/libssl.so.1.0.0 /usr/local/ssl/lib/shared/libssl.so \
+    && ln -sf /usr/local/ssl/lib/shared/libcrypto.so.1.0.0 /usr/local/ssl/lib/shared/libcrypto.so \
+    && ln -sf /usr/local/ssl/lib/shared/libssl.so.1.0.0 /usr/local/ssl/lib/shared/libssl.so \
     && rm -f /usr/local/ssl/lib/libcrypto.so /usr/local/ssl/lib/libssl.so \
     && ln -sf /usr/local/ssl/bin/openssl /usr/bin/openssl \
     && OPENSSL_FIPS=1 openssl version
@@ -76,21 +76,22 @@ ENV PATH=$PATH:/usr/local/ssl/bin
 ENV LDFLAGS="-L/usr/local/ssl/lib/ -L//usr/local/ssl/lib64/"
 ENV LD_LIBRARY_PATH="/usr/local/ssl/lib/:/usr/local/ssl/lib64/"
 ENV CPPFLAGS="-I/usr/local/ssl/include -I/usr/local/ssl/include/openssl"
+ENV CFLAGS="-I/usr/local/ssl/include"
 
 # compile python
 RUN set -ex \
     && tar -xvf Python-${PYTHON_VERSION}.tar.xz \
     && cd Python-${PYTHON_VERSION} \
-    && ./configure --enable-optimizations -enable-shared --without-ensurepip \
+    && ./configure --enable-optimizations --enable-shared --without-ensurepip \
     && make \
     && make install \
     && ldconfig \
     && cd ../ \
     && python3 --version \
-    && ln -s /usr/local/bin/idle3 /usr/local/bin/idle \
-	  && ln -s /usr/local/bin/pydoc3 /usr/local/bin/pydoc \
-	  && ln -s /usr/local/bin/python3 /usr/local/bin/python \
-	  && ln -s /usr/local/bin/python3-config /usr/local/bin/python-config \
+    && ln -sf /usr/local/bin/idle3 /usr/local/bin/idle \
+	  && ln -sf /usr/local/bin/pydoc3 /usr/local/bin/pydoc \
+	  && ln -sf /usr/local/bin/python3 /usr/local/bin/python \
+	  && ln -sf /usr/local/bin/python3-config /usr/local/bin/python-config \
     && rm -f Python-${PYTHON_VERSION}.tar.xz \
     && rm -rf Python-${PYTHON_VERSION}
 
@@ -99,14 +100,9 @@ RUN set -ex \
     && python3 get-pip.py \
     && pip install cryptography --no-binary cryptography
 
-# copy the test file
-COPY ./test.py /usr/src/test.py
-
 # run a final test
-RUN openssl version \
-    && python3 --version \
-    && python3 -c "import ssl; print(ssl.OPENSSL_VERSION)" \
-    && python3 /usr/src/test.py \
-    && python3 /usr/src/test.py 1
+RUN openssl version && python3 --version
 
-CMD ["python3"]
+ENTRYPOINT [ "/usr/local/bin/python3" ]
+
+CMD ["-c", "import ssl; print(ssl.OPENSSL_VERSION)"]
